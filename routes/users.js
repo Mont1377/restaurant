@@ -1,0 +1,70 @@
+const auth = require('../middleware/auth');
+const bcrypt = require('bcrypt');
+const _ = require('lodash');
+const config = require('config');
+const admin = require("../middleware/admin");
+const asyncMiddleware = require('../middleware/async');
+const jwt = require('jsonwebtoken');
+const {User, validate} = require('../models/user');
+const mongoose = require('mongoose');
+const express = require('express');
+const router = express.Router();
+
+router.get('/', [auth, admin], async (req, res) => {
+    const user = await User.find().sort('-name');
+    res.send(user);
+  });
+
+router.get('/me',auth ,  async(req, res) =>{
+    const user = await User.findById(req.user._id).select('-password');
+    res.send(user);
+})
+
+router.post('/', async(req, res) =>{
+        const {error} = validate(req.body);
+        if(error) return res.status(400).send(error.details[0].message);
+
+        let user = await User.findOne({email: req.body.email});
+        if(user) return res.status(400).send('user already registered');
+
+        const salt = await bcrypt.genSalt(10);
+        const hashed = await bcrypt.hash(req.body.password, salt);    
+
+        user = new User({
+            name: req.body.name,
+            email: req.body.email,
+            password: hashed,
+            address: req.body.address,
+            phone: req.body.phone
+
+        });
+        await user.save();
+
+        const token = user.generateAuthToken();
+        res.header('x-auth-token', token).send(_.pick(user, ['_id', 'name' , 'email', 'address']));
+    });
+module.exports = router;
+
+
+//for creat admin
+// router.post('/create-admin', async (req, res) => {
+//     const existingAdmin = await User.findOne({ email: 'mohsen.mmt1390@gmail.com' });
+//     if (existingAdmin) return res.status(400).send('Admin already exists');
+  
+//   const salt = await bcrypt.genSalt(10);
+//   const hashed = await bcrypt.hash('mohsen1377!', salt);
+
+//   const result = await User.collection.insertOne({
+//         name: 'Mohsen tavassoli',
+//         email: 'mohsen.mmt1390@gmail.com',
+//         password: hashed,
+//         address: 'malekian22, allahoakbar st,esfahan,iran',
+//         phone: '09162308986',
+//         isAdmin: true,
+//         orders: []
+//     });
+//     await result.save();
+//     const token = result.generateAuthToken();
+//     res.header('x-auth-token', token).send(_.pick(result, ['_id', 'name' , 'email', 'address']));
+//     res.send(' Admin created successfully');
+// });
