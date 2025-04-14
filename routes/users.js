@@ -46,25 +46,4 @@ router.post('/', async(req, res) =>{
 module.exports = router;
 
 
-//for creat admin
-// router.post('/create-admin', async (req, res) => {
-//     const existingAdmin = await User.findOne({ email: 'mohsen.mmt1390@gmail.com' });
-//     if (existingAdmin) return res.status(400).send('Admin already exists');
-  
-//   const salt = await bcrypt.genSalt(10);
-//   const hashed = await bcrypt.hash('mohsen1377!', salt);
 
-//   const result = await User.collection.insertOne({
-//         name: 'Mohsen tavassoli',
-//         email: 'mohsen.mmt1390@gmail.com',
-//         password: hashed,
-//         address: 'malekian22, allahoakbar st,esfahan,iran',
-//         phone: '09162308986',
-//         isAdmin: true,
-//         orders: []
-//     });
-//     await result.save();
-//     const token = result.generateAuthToken();
-//     res.header('x-auth-token', token).send(_.pick(result, ['_id', 'name' , 'email', 'address']));
-//     res.send(' Admin created successfully');
-// });
